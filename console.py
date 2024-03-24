@@ -73,7 +73,7 @@ class HBNBCommand(cmd.Cmd):
                 pline = pline[2].strip()  # pline is now str
                 if pline:
                     # check for *args or **kwargs
-                    if pline[0] is '{' and pline[-1] is'}'\
+                    if pline[0] == '{' and pline[-1] == '}'\
                             and type(eval(pline)) is dict:
                         _args = pline
                     else:
@@ -113,18 +113,50 @@ class HBNBCommand(cmd.Cmd):
         """ Overrides the emptyline method of CMD """
         pass
 
+    @staticmethod
+    def get_attr_dict(args):
+        """Gets the attributes for instantation"""
+        arg_list = args.split(" ")[1:]
+        attr_dict = {}
+
+        for item in arg_list:
+            name_value_list = item.split("=")
+            attr_name = name_value_list[0]
+            attr_value = name_value_list[1]
+
+            if attr_value.startswith('"') and attr_value.endswith('"'):
+                attr_value = attr_value.strip('"').replace("_", " ")
+            else:
+                try:
+                    attr_value = eval(value)
+                except (SyntaxError, NameError):
+                    continue
+
+            attr_dict[attr_name] = attr_value
+
+        return attr_dict
+
     def do_create(self, args):
+        class_name = args.partition(" ")[0]
         """ Create an object of any class"""
         if not args:
             print("** class name missing **")
             return
-        elif args not in HBNBCommand.classes:
+        elif class_name not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
-        new_instance = HBNBCommand.classes[args]()
-        storage.save()
+
+        attr_dict = HBNBCommand.get_attr_dict(args)
+        print(attr_dict)
+
+        if attr_dict == {}:
+            new_instance = HBNBCommand.classes[class_name]()
+        else:
+            new_instance = HBNBCommand.classes[class_name](**attr_dict)
+            storage.new(new_instance)
+
+        new_instance.save()
         print(new_instance.id)
-        storage.save()
 
     def help_create(self):
         """ Help information for the create method """
@@ -272,7 +304,7 @@ class HBNBCommand(cmd.Cmd):
                 args.append(v)
         else:  # isolate args
             args = args[2]
-            if args and args[0] is '\"':  # check for quoted arg
+            if args and args[0] == '\"':  # check for quoted arg
                 second_quote = args.find('\"', 1)
                 att_name = args[1:second_quote]
                 args = args[second_quote + 1:]
@@ -280,10 +312,10 @@ class HBNBCommand(cmd.Cmd):
             args = args.partition(' ')
 
             # if att_name was not quoted arg
-            if not att_name and args[0] is not ' ':
+            if not att_name and args[0] != ' ':
                 att_name = args[0]
             # check for quoted val arg
-            if args[2] and args[2][0] is '\"':
+            if args[2] and args[2][0] == '\"':
                 att_val = args[2][1:args[2].find('\"', 1)]
 
             # if att_val was not quoted arg
@@ -319,6 +351,7 @@ class HBNBCommand(cmd.Cmd):
         """ Help information for the update class """
         print("Updates an object with new information")
         print("Usage: update <className> <id> <attName> <attVal>\n")
+
 
 if __name__ == "__main__":
     HBNBCommand().cmdloop()
