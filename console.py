@@ -147,7 +147,6 @@ class HBNBCommand(cmd.Cmd):
             return
 
         attr_dict = HBNBCommand.get_attr_dict(args)
-        print(attr_dict)
 
         if attr_dict == {}:
             new_instance = HBNBCommand.classes[class_name]()
