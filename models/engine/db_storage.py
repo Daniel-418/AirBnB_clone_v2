@@ -15,6 +15,7 @@ from models.amenity import Amenity
 from models.base_model import BaseModel
 
 class DBStorage:
+    """ Represent a database storage engine """
     __engine = None
     __session = None
 
@@ -71,3 +72,7 @@ class DBStorage:
                                        expire_on_commit = False)
         Session = scoped_session(session_factory)
         self.__session = Session()
+
+    def close(self):
+        """Closes the session"""
+        self.__session.close()
