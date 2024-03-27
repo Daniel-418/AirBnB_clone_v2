@@ -137,25 +137,42 @@ class HBNBCommand(cmd.Cmd):
         return attr_dict
 
     def do_create(self, args):
-        class_name = args.partition(" ")[0]
         """ Create an object of any class"""
         if not args:
             print("** class name missing **")
             return
-        elif class_name not in HBNBCommand.classes:
+        # Split arg into a list, retrieve all parameters
+        args = args.split()
+        cls = args[0]
+        if cls not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
 
-        attr_dict = HBNBCommand.get_attr_dict(args)
+        new_instance = HBNBCommand.classes[cls]()
 
-        if attr_dict == {}:
-            new_instance = HBNBCommand.classes[class_name]()
-        else:
-            new_instance = HBNBCommand.classes[class_name](**attr_dict)
-
-        storage.new(new_instance)
-        storage.save()
+        # Get all keyword args
+        params = args[1:]
+        # Loop through the list to retrieve keys and values
+        for param in params:
+            item = param.split('=')
+            try:
+                key = item[0]
+                value = item[1]
+                print(key)
+                # FOR STRING VALUE
+                if value.startswith('"') and value.endswith('"'):
+                    value = value.replace('_', ' ').replace('"', '')
+                elif key in HBNBCommand.types:
+                    # FOR NUMBERS -INTEGERS AND FLOATS
+                    if '.' in value:
+                        value = HBNBCommand.types[key](value)
+                    else:
+                        value = HBNBCommand.types[key](value)
+                setattr(new_instance, key, value)
+            except IndexError:
+                print('Enter key-value pair')
         print(new_instance.id)
+        new_instance.save()
 
     def help_create(self):
         """ Help information for the create method """
